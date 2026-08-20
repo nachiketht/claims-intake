@@ -20,24 +20,34 @@ def create_task(task: schemas.TaskCreate, db: Session = Depends(get_db)):
         title=task.title,
         description=task.description,
     )
+    db.add(new_task)
+    db.commit()
+    db.refresh(new_task)
+    
     return new_task
 
 
 @app.get("/tasks/{task_id}", response_model=schemas.TaskResponse)
 def get_task(task_id: int, db: Session = Depends(get_db)):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Read is not implemented",
-    )
+
+    task = Session.get(db, models.Task, task_id)
+    if task is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Task not found",
+        )
+
+    return task
 
 
 @app.put("/tasks/{task_id}", response_model=schemas.TaskResponse)
 def update_task(task_id: int, task: schemas.TaskUpdate, db: Session = Depends(get_db)):
-    raise HTTPException(
-        status_code=status.HTTP_501_NOT_IMPLEMENTED,
-        detail="Update is not implemented",
-    )
 
+    task = db.merge(models.Task(id=task_id, title=task.title, description=task.description))
+    db.commit()
+    db.refresh(task)
+
+    return task
 
 @app.delete("/tasks/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_task(task_id: int, db: Session = Depends(get_db)):
@@ -49,6 +59,7 @@ def delete_task(task_id: int, db: Session = Depends(get_db)):
             detail="Task not found",
         )
 
-    db.delete(task)
+    Session.delete(db, task)
     db.commit()
+    
     return None

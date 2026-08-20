@@ -4,14 +4,25 @@ from app.main import app
 
 client = TestClient(app)
 
-
 def test_root_returns_something():
     response = client.get("/")
     assert response.status_code < 500
 
+def test_create_task():
+    response = client.post("/tasks", json={"title": "Test Task", "description": "Test Description"})
+    assert response.status_code == 201
 
-def test_python_still_does_math():
-    assert 10 + 5 == 15
+# def test_get_task():
+#     response = client.get("/tasks/x") # TODO: Get the task id from the database and replace x with the id
+#     assert response.status_code == 200
+
+def test_update_task():
+    response = client.put("/tasks/1", json={"title": "Updated Task", "description": "Updated Description"})
+    assert response.status_code == 200
+
+def test_delete_task():
+    response = client.delete("/tasks/1")
+    assert response.status_code == 204
 
 """
 Running the Application
