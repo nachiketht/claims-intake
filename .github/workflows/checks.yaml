@@ -4,12 +4,18 @@ on:
   pull_request:
   push:
 
+defaults:
+  run:
+    working-directory: claims-intake
+
 jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
+        with:
+          working-directory: claims-intake
       - run: uv sync --frozen
       - run: uv run ruff check .
       - run: uv run mypy src tests
