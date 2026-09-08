@@ -7,7 +7,7 @@ caller as the same status code.
 
 Implement these against `docs/api-contract.md` sections 2 and 3.
 """
-
+import os
 from __future__ import annotations
 
 from dataclasses import dataclass, field
