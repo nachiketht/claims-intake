@@ -1,0 +1,5 @@
+Agent decision log:
+
+I kept the agent's rule order: cancellation (V-7) runs before expiry (V-3). Contract section 4.1 says the first failing rule wins, and WI-0158 AC-4 says a cancelled policy that is also past expiry must return POLICY_CANCELLED, not LOSS_AFTER_EXPIRY. If those two rules were swapped, a loss on `MOT-4496` after 2026-02-28 would tell the handler the policy had expired and send them to the wrong system.
+
+I rejected the agent's first `_assert_not_recorded` helper, which treated every refusal as "the store is empty." That is true for WI-0151 AC-3 (a rejected notice was never recorded, so a retry is not a duplicate). It is false for AC-1 (the first claim stays; the second is refused). The service already returned `DUPLICATE_NOTIFICATION` with the existing `claim_reference` (AC-2), but the test still failed because the original row was there.
