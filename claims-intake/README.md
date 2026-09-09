@@ -1,45 +1,34 @@
 # Claims Intake Service
 
-A service that accepts a first notice of loss, validates it against the policy
-master and the rule table in `docs/api-contract.md`, and either records a
-notification and issues a claim reference or refuses the submission with a
-specific reason.
+The claims intake service accepts a first notice of loss from the claims portal, validates it against the policy master and the rule table in `docs/api-contract.md`, and either records a notification and issues a claim reference or refuses the submission with a specific reason. It does not decide whether the claim will be paid.
 
-This README is incomplete. Completing it is part of the Day 4 lab, and the
-standard it is graded against is that a person who has never seen this repository
-can follow it to a running service.
+## Running the service
 
-## Where things are
-
-| Path | What it holds |
-| --- | --- |
-| `docs/api-contract.md` | What the service accepts, returns, and refuses. The authority. |
-| `docs/requirements-brief.md` | The open work items and their acceptance criteria. |
-| `docs/payload-triage.md` | Your Day 1 classification of the edge payloads. |
-| `data/` | Synthetic policies and notification payloads. |
-| `src/claims/` | The service. |
-| `tests/` | Unit tests mirror `src/claims/`. Integration tests exercise HTTP. |
-
-## Working in this repository
-
-You are inside a Linux container. Confirm it before you start:
+Inside a Linux container with Docker available, build an amd64 image and publish port 8000:
 
 ```
-uname -sm     # Linux aarch64
-pwd           # /workspaces/claims-intake
+docker buildx build --platform linux/amd64 -t claims-intake .
+docker run -p 8000:8000 claims-intake
 ```
 
-Dependencies are installed when the container is created. There is no install
-step this week. If a tool you need is missing, that is a defect
-in the image specification and should be reported rather than worked around.
+The service listens on port 8000. Submit a notification with `POST /notifications`. A well-formed, admissible body returns `201` and a claim reference; a refused body returns the error envelope from the contract.
+
+## Why `--platform linux/amd64`
+
+Docker tags an image with the CPU architecture of the machine that built it, unless you say otherwise. This environment, and many developer laptops (Apple Silicon in particular), are arm64. The servers and CI runners that later pull the image are almost always amd64 (x86_64). An arm64 image cannot run on an amd64 host: the two instruction sets are not interchangeable, so the kernel refuses to start the process.
+
+`--platform linux/amd64` forces the build to produce the amd64 image those machines expect. On an arm64 host Docker emulates amd64 for the build, which is slower, but the resulting image will actually start where it is deployed.
+
+## Running the tests
+
+Dependencies are already installed in this environment. From the repository root:
 
 ```
 uv run pytest
-uv run ruff check .
-uv run mypy
 ```
+
+Unit tests live under `tests/unit/`. Integration tests under `tests/integration/` hit the HTTP surface.
 
 ## Data
 
-Everything in `data/` is synthetic and was authored for this program. It contains
-no real client data and no named clients.
+Everything in `data/` is synthetic and was authored for this program. It contains no real client data and no named clients.

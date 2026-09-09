@@ -1,0 +1,16 @@
+.git
+.venv
+.worktrees
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+tests
+docs
+.devcontainer
+.env
+*.env
+!example.env
+.DS_Store
